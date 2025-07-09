@@ -12,6 +12,8 @@ import {
   ReleaseQueryOrder,
 } from "azure-devops-node-api/interfaces/ReleaseInterfaces.js";
 import { z } from "zod";
+import { getAzureDevOpsClient } from "./index.js";
+import { getAzureDevOpsToken, orgName } from "./index.js";
 
 const RELEASE_TOOLS = {
   get_release_definitions: "release_get_definitions",
@@ -61,7 +63,7 @@ function configureReleaseTools(
       isDeleted,
       searchTextContainsFolderName,
     }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const releaseApi = await connection.getReleaseApi();
       const releaseDefinitions = await releaseApi.getReleaseDefinitions(
         project,
@@ -144,7 +146,7 @@ function configureReleaseTools(
       releaseIdFilter,
       path,
     }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const releaseApi = await connection.getReleaseApi();
       const releases = await releaseApi.getReleases(
         project,
