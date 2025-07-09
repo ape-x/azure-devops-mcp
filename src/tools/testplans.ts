@@ -6,6 +6,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebApi } from "azure-devops-node-api";
 import { TestPlanCreateParams } from "azure-devops-node-api/interfaces/TestPlanInterfaces.js";
 import { z } from "zod";
+import { getAzureDevOpsClient } from "../index.js";
 
 const Test_Plan_Tools = {
   create_test_plan: "testplan_create_test_plan",
@@ -16,11 +17,19 @@ const Test_Plan_Tools = {
   list_test_plans: "testplan_list_test_plans"
 };
 
+let adoPat = "";
+let orgUrl = "";
+
 function configureTestPlanTools(
   server: McpServer,
   tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>
+  connectionProvider: () => Promise<WebApi>,
+  adoPat: string,
+  orgUrl: string
 ) {
+  adoPat = adoPat;
+  orgUrl = orgUrl;
+
   /*
     LIST OF TEST PLANS
     get list of test plans by project
@@ -41,7 +50,7 @@ function configureTestPlanTools(
       continuationToken,
     }) => {
       const owner = ""; //making owner an empty string untill we can figure out how to get owner id
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const testPlanApi = await connection.getTestPlanApi();
 
       const testPlans = await testPlanApi.getTestPlans(
@@ -82,7 +91,7 @@ function configureTestPlanTools(
       endDate,
       areaPath,
     }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const testPlanApi = await connection.getTestPlanApi();
 
       const testPlanToCreate: TestPlanCreateParams = {
@@ -120,7 +129,7 @@ function configureTestPlanTools(
       testCaseIds: z.string().or(z.array(z.string())).describe("The ID(s) of the test case(s) to add. "),
     },
     async ({ project, planId, suiteId, testCaseIds }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const testApi = await connection.getTestApi();
 
       // If testCaseIds is an array, convert it to comma-separated string
@@ -158,7 +167,7 @@ function configureTestPlanTools(
       iterationPath: z.string().optional().describe("The iteration path for the test case."),
     },
     async ({ project, title, steps, priority, areaPath, iterationPath }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const witClient = await connection.getWorkItemTrackingApi();
 
       let stepsXml;
@@ -233,7 +242,7 @@ function configureTestPlanTools(
       suiteid: z.number().describe("The ID of the test suite."),
     },
     async ({ project, planid, suiteid }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const coreApi = await connection.getTestPlanApi();
       const testcases = await coreApi.getTestCaseList(project, planid, suiteid);
 
@@ -254,7 +263,7 @@ function configureTestPlanTools(
       buildid: z.number().describe("The ID of the build."),
     },
     async ({ project, buildid }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const coreApi = await connection.getTestResultsApi();
       const testResults = await coreApi.getTestResultDetailsForBuild(
         project,
