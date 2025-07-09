@@ -7,9 +7,13 @@ import { WebApi } from "azure-devops-node-api";
 import { IGitApi } from "azure-devops-node-api/GitApi.js";
 import { z } from "zod";
 import { apiVersion , userAgent } from "../utils.js";
-import { orgName } from "../index.js";
+import { getAzureDevOpsToken, orgName } from "../index.js";
 import { VersionControlRecursionType } from "azure-devops-node-api/interfaces/GitInterfaces.js";
 import { GitItem } from "azure-devops-node-api/interfaces/GitInterfaces.js";
+import { getAzureDevOpsClient } from "../index.js";
+
+let adoPat = "";
+let orgUrl = "";
 
 const SEARCH_TOOLS = {
   search_code: "search_code",
@@ -20,8 +24,13 @@ const SEARCH_TOOLS = {
 function configureSearchTools(
   server: McpServer,
   tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>
+  connectionProvider: () => Promise<WebApi>,
+  adoPat: string,
+  orgUrl: string
 ) {
+  adoPat = adoPat;
+  orgUrl = orgUrl;
+
   /*
     CODE SEARCH
     Get the code search results for a given search text.
@@ -50,8 +59,8 @@ server.tool(
     }).strict()
   },
   async ({  searchRequest }) => {
-    const accessToken = await tokenProvider();
-    const connection = await connectionProvider();
+    const accessToken = await getAzureDevOpsToken();
+    const connection = await getAzureDevOpsClient();
     const url = `https://almsearch.dev.azure.com/${orgName}/_apis/search/codesearchresults?api-version=${apiVersion}`;
 
     const response = await fetch(url, {
@@ -106,7 +115,7 @@ server.tool(
     }).strict()
   },
   async ({ searchRequest }) => {
-    const accessToken = await tokenProvider();
+    const accessToken = await getAzureDevOpsToken();
     const url = `https://almsearch.dev.azure.com/${orgName}/_apis/search/wikisearchresults?api-version=${apiVersion}`;
 
     const response = await fetch(url, {
@@ -155,7 +164,7 @@ server.tool(
     }).strict()
   },
   async ({ searchRequest }) => {
-    const accessToken = await tokenProvider();
+    const accessToken = await getAzureDevOpsToken();
     const url = `https://almsearch.dev.azure.com/${orgName}/_apis/search/workitemsearchresults?api-version=${apiVersion}`;
 
     const response = await fetch(url, {
