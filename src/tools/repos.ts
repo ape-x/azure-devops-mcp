@@ -7,6 +7,11 @@ import { WebApi } from "azure-devops-node-api";
 import { GitRef } from "azure-devops-node-api/interfaces/GitInterfaces.js";
 import { z } from "zod";
 import { getCurrentUserDetails } from "./auth.js";
+import { getAzureDevOpsToken, orgName } from "../index.js";
+import { getAzureDevOpsClient } from "../index.js";
+
+let adoPat = "";
+let orgUrl = "";
 
 const REPO_TOOLS = {
   list_repos_by_project: "repo_list_repos_by_project",
@@ -61,7 +66,7 @@ function configureRepoTools(
       description,
       isDraft,
     }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
       const pullRequest = await gitApi.createPullRequest(
         {
@@ -89,7 +94,7 @@ function configureRepoTools(
       status: z.enum(["active", "abandoned"]).describe("The new status of the pull request. Can be 'active' or 'abandoned'."),
     },
     async ({ repositoryId, pullRequestId }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
       const statusValue = status === "active" ? 3 : 2;
 
@@ -114,7 +119,7 @@ function configureRepoTools(
       project: z.string().describe("The name or ID of the Azure DevOps project."), 
     },
     async ({ project }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
       const repositories = await gitApi.getRepositories(
         project,
@@ -151,7 +156,7 @@ function configureRepoTools(
       i_am_reviewer: z.boolean().default(false).describe("Filter pull requests where the current user is a reviewer."),
     },
     async ({ repositoryId, created_by_me, i_am_reviewer }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
 
       // Build the search criteria
@@ -167,8 +172,8 @@ function configureRepoTools(
 
       if (created_by_me || i_am_reviewer) {
         const data = await getCurrentUserDetails(
-          tokenProvider,
-          connectionProvider
+          getAzureDevOpsToken,
+          getAzureDevOpsClient
         );
         const userId = data.authenticatedUser.id;
         if (created_by_me) {
@@ -215,7 +220,7 @@ function configureRepoTools(
       i_am_reviewer: z.boolean().default(false).describe("Filter pull requests where the current user is a reviewer."),
     },
     async ({ project, created_by_me, i_am_reviewer }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
 
       // Build the search criteria
@@ -229,8 +234,8 @@ function configureRepoTools(
 
       if (created_by_me || i_am_reviewer) {
         const data = await getCurrentUserDetails(
-          tokenProvider,
-          connectionProvider
+          getAzureDevOpsToken,
+          getAzureDevOpsClient
         );
         const userId = data.authenticatedUser.id;
         if (created_by_me) {
@@ -286,7 +291,7 @@ function configureRepoTools(
       iteration,
       baseIteration,
     }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
 
       const threads = await gitApi.getThreads(
@@ -313,7 +318,7 @@ function configureRepoTools(
       project: z.string().optional().describe("Project ID or project name (optional)"),
     },
     async ({ repositoryId, pullRequestId, threadId, project }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
 
       // Get thread comments - GitApi uses getComments for retrieving comments from a specific thread
@@ -338,7 +343,7 @@ function configureRepoTools(
       top: z.number().default(100).describe("The maximum number of branches to return. Defaults to 100."),
     },
     async ({ repositoryId, top }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
       const branches = await gitApi.getRefs(repositoryId, undefined);
 
@@ -362,7 +367,7 @@ function configureRepoTools(
       repositoryId: z.string().describe("The ID of the repository where the branches are located."),
     },
     async ({ repositoryId }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
       const branches = await gitApi.getRefs(
         repositoryId,
@@ -387,7 +392,7 @@ function configureRepoTools(
       repositoryNameOrId: z.string().describe("Repository name or ID."),
     },
     async ({ project, repositoryNameOrId }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
       const repositories = await gitApi.getRepositories(project);
 
@@ -413,7 +418,7 @@ function configureRepoTools(
       branchName: z.string().describe("The name of the branch to retrieve, e.g., 'main' or 'feature-branch'."), 
     },
     async ({ repositoryId, branchName }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
       const branches = await gitApi.getRefs(repositoryId);
       const branch = branches?.find(
@@ -443,7 +448,7 @@ function configureRepoTools(
       pullRequestId: z.number().describe("The ID of the pull request to retrieve."), 
     },
     async ({ repositoryId, pullRequestId }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
       const pullRequest = await gitApi.getPullRequest(
         repositoryId,
@@ -466,7 +471,7 @@ function configureRepoTools(
       project: z.string().optional().describe("Project ID or project name (optional)"),
     },
     async ({ repositoryId, pullRequestId, threadId, content, project }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
       const comment = await gitApi.createComment(
         { content },
@@ -491,7 +496,7 @@ function configureRepoTools(
       threadId: z.number().describe("The ID of the thread to be resolved."),
     },
     async ({ repositoryId, pullRequestId, threadId }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const gitApi = await connection.getGitApi();
       const thread = await gitApi.updateThread(
         { status: 2 }, // 2 corresponds to "Resolved" status
