@@ -26,11 +26,11 @@ function configureAllTools(
     configureWorkTools(server, tokenProvider, connectionProvider, adoPat, orgUrl);
     configureBuildTools(server, tokenProvider, connectionProvider);
     configureRepoTools(server, tokenProvider, connectionProvider);
-    configureWorkItemTools(server, tokenProvider, connectionProvider);
+    configureWorkItemTools(server, tokenProvider, connectionProvider, adoPat, orgUrl);
     configureReleaseTools(server, tokenProvider, connectionProvider);
-    configureWikiTools(server, tokenProvider, connectionProvider);
-    configureTestPlanTools(server, tokenProvider, connectionProvider);
-    configureSearchTools(server, tokenProvider, connectionProvider);
+    configureWikiTools(server, tokenProvider, connectionProvider, adoPat, orgUrl);
+    configureTestPlanTools(server, tokenProvider, connectionProvider, adoPat, orgUrl);
+    configureSearchTools(server, tokenProvider, connectionProvider, adoPat, orgUrl);
 }
 
 export { configureAllTools };

@@ -12,8 +12,7 @@ import {
   ReleaseQueryOrder,
 } from "azure-devops-node-api/interfaces/ReleaseInterfaces.js";
 import { z } from "zod";
-import { getAzureDevOpsClient } from "./index.js";
-import { getAzureDevOpsToken, orgName } from "./index.js";
+import { getAzureDevOpsClient } from "../index.js";
 
 const RELEASE_TOOLS = {
   get_release_definitions: "release_get_definitions",
