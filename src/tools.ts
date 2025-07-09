@@ -18,10 +18,12 @@ import { configureSearchTools } from "./tools/search.js";
 function configureAllTools(
   server: McpServer,
   tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>
+  connectionProvider: () => Promise<WebApi>,
+  adoPat: string,
+  orgUrl: string
 ) {
     configureCoreTools(server, tokenProvider, connectionProvider);
-    configureWorkTools(server, tokenProvider, connectionProvider);
+    configureWorkTools(server, tokenProvider, connectionProvider, adoPat, orgUrl);
     configureBuildTools(server, tokenProvider, connectionProvider);
     configureRepoTools(server, tokenProvider, connectionProvider);
     configureWorkItemTools(server, tokenProvider, connectionProvider);

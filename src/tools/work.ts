@@ -8,9 +8,9 @@ import { z } from "zod";
 import { TreeStructureGroup } from "azure-devops-node-api/interfaces/WorkItemTrackingInterfaces.js";
 import * as azdev from "azure-devops-node-api";
 import { IRequestHandler } from "azure-devops-node-api/interfaces/common/VsoBaseInterfaces.js";
-import { getAzureDevOpsToken } from "../index.js";
 import { packageVersion } from "../version.js";
 import { userAgent } from "../utils.js";
+import { DefaultAzureCredential } from "@azure/identity";
 
 const WORK_TOOLS = { 
   list_team_iterations: "work_list_team_iterations",
@@ -20,6 +20,13 @@ const WORK_TOOLS = {
 
 let orgUrl = "";
 let adoPat = "";
+
+async function getAzureDevOpsToken(): Promise<AccessToken> {
+  process.env.AZURE_TOKEN_CREDENTIALS = "dev";
+  const credential = new DefaultAzureCredential(); // CodeQL [SM05138] resolved by explicitly setting AZURE_TOKEN_CREDENTIALS
+  const token = await credential.getToken("499b84ac-1321-427f-aa17-267ca6975798/.default");
+  return token;
+}
 
 async function getAzureDevOpsClient(): Promise<azdev.WebApi> {
   let authHandler: IRequestHandler;

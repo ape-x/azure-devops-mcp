@@ -34,8 +34,6 @@ async function getAzureDevOpsToken(): Promise<AccessToken> {
 
 async function getAzureDevOpsClient(): Promise<azdev.WebApi> {
   let authHandler: IRequestHandler;
-  console.log("Using PAT:", adoPat ? "Yes" : "No");
-  console.log("process env azure devops pat:", process.env.AZURE_DEVOPS_PAT);
   if (adoPat) {
     // Use PAT authentication
     authHandler = azdev.getPersonalAccessTokenHandler(adoPat);
@@ -44,7 +42,6 @@ async function getAzureDevOpsClient(): Promise<azdev.WebApi> {
     const token = await getAzureDevOpsToken();
     authHandler = azdev.getBearerHandler(token.token);
   }
-  
   const connection = new azdev.WebApi(orgUrl, authHandler, undefined, {
     productName: "AzureDevOps.MCP",
     productVersion: packageVersion,
@@ -72,6 +69,31 @@ async function testAzureDevOpsConnection(): Promise<void> {
   }
 }
 
+async function testWorkItems(): Promise<void>{
+  try {
+    console.log("Testing Azure DevOps work items...");
+    const client = await getAzureDevOpsClient();
+    const workItemTrackingApi = await client.getWorkApi();
+    
+    // Create a TeamContext object - you need project and team
+    const teamContext = {
+      project: "ALBA", // Replace with actual project name
+      team: "ALBA Team"        // Replace with actual team name, or omit for default team
+    };
+    
+    const iterations = await workItemTrackingApi.getTeamIterations(teamContext);
+    console.log(`✅ Found ${iterations.length} team iterations.`);
+    
+    // Optionally log the first iteration name
+    if (iterations.length > 0) {
+      console.log(`First iteration: ${iterations[0].name}`);
+    }
+  } catch (error) {
+    console.error("❌ Work items test failed:", error);
+    throw error;
+  }
+}
+
 async function main() {
   const server = new McpServer({
     name: "Azure DevOps MCP Server",
@@ -80,15 +102,20 @@ async function main() {
 
   // Test connection before starting server
   if (debug) {
-    await testAzureDevOpsConnection();
+    //await testAzureDevOpsConnection();
+    await testWorkItems();
   } 
+
+
 
   configurePrompts(server);
   
   configureAllTools(
     server,
     getAzureDevOpsToken,
-    getAzureDevOpsClient
+    getAzureDevOpsClient,
+    adoPat,
+    orgUrl
   );
 
   const transport = new StdioServerTransport();
