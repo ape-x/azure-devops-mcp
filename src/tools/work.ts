@@ -6,6 +6,11 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebApi } from "azure-devops-node-api";
 import { z } from "zod";
 import { TreeStructureGroup } from "azure-devops-node-api/interfaces/WorkItemTrackingInterfaces.js";
+import * as azdev from "azure-devops-node-api";
+import { IRequestHandler } from "azure-devops-node-api/interfaces/common/VsoBaseInterfaces.js";
+import { getAzureDevOpsToken } from "../index.js";
+import { packageVersion } from "../version.js";
+import { userAgent } from "../utils.js";
 
 const WORK_TOOLS = { 
   list_team_iterations: "work_list_team_iterations",
@@ -13,11 +18,37 @@ const WORK_TOOLS = {
   assign_iterations: "work_assign_iterations",
 };
 
+let orgUrl = "";
+let adoPat = "";
+
+async function getAzureDevOpsClient(): Promise<azdev.WebApi> {
+  let authHandler: IRequestHandler;
+  if (adoPat) {
+    // Use PAT authentication
+    authHandler = azdev.getPersonalAccessTokenHandler(adoPat);
+  } else {
+    // Use existing Azure Identity authentication
+    const token = await getAzureDevOpsToken();
+    authHandler = azdev.getBearerHandler(token.token);
+  }
+  const connection = new azdev.WebApi(orgUrl, authHandler, undefined, {
+    productName: "AzureDevOps.MCP",
+    productVersion: packageVersion,
+    userAgent: userAgent
+  });
+  return connection;
+}
+
 function configureWorkTools(
   server: McpServer,
   tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>
+  connectionProvider: () => Promise<WebApi>,
+  _adoPat: string,
+  _orgUrl: string
 ) {  
+
+  adoPat = _adoPat;
+  orgUrl = _orgUrl;
 
   server.tool(
     WORK_TOOLS.list_team_iterations,
@@ -29,7 +60,7 @@ function configureWorkTools(
     },
     async ({ project, team, timeframe }) => {
       try {
-        const connection = await connectionProvider();
+        const connection = await getAzureDevOpsClient();
         const workApi = await connection.getWorkApi();
         const iterations = await workApi.getTeamIterations(
           { project, team },
@@ -67,7 +98,7 @@ function configureWorkTools(
     },
     async ({ project, iterations }) => {
       try {
-        const connection = await connectionProvider();
+        const connection = await getAzureDevOpsClient();
         const workItemTrackingApi = await connection.getWorkItemTrackingApi();
         const results = [];
 
@@ -121,7 +152,7 @@ function configureWorkTools(
     },
     async ({ project, team, iterations }) => {
       try {
-        const connection = await connectionProvider();
+        const connection = await getAzureDevOpsClient();
         const workApi = await connection.getWorkApi();
         const teamContext = { project, team };
         const results = [];
