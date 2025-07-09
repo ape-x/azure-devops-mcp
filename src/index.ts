@@ -25,14 +25,14 @@ export const debug = args.includes("--debug");
 
 const orgUrl = "https://dev.azure.com/" + orgName;
 
-async function getAzureDevOpsToken(): Promise<AccessToken> {
+export async function getAzureDevOpsToken(): Promise<AccessToken> {
   process.env.AZURE_TOKEN_CREDENTIALS = "dev";
   const credential = new DefaultAzureCredential(); // CodeQL [SM05138] resolved by explicitly setting AZURE_TOKEN_CREDENTIALS
   const token = await credential.getToken("499b84ac-1321-427f-aa17-267ca6975798/.default");
   return token;
 }
 
-async function getAzureDevOpsClient(): Promise<azdev.WebApi> {
+export async function getAzureDevOpsClient(): Promise<azdev.WebApi> {
   let authHandler: IRequestHandler;
   if (adoPat) {
     // Use PAT authentication

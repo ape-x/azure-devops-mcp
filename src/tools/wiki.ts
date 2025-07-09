@@ -6,6 +6,10 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebApi } from "azure-devops-node-api";
 import { z } from "zod";
 import { WikiPagesBatchRequest } from "azure-devops-node-api/interfaces/WikiInterfaces.js";
+import { getAzureDevOpsClient } from "../index.js";
+
+let adoPat = "";
+let orgUrl = "";
 
 const WIKI_TOOLS = {
   list_wikis: "wiki_list_wikis",
@@ -17,8 +21,13 @@ const WIKI_TOOLS = {
 function configureWikiTools(
   server: McpServer,
   tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>
+  connectionProvider: () => Promise<WebApi>,
+  adoPat: string,
+  orgUrl: string
 ) {
+  adoPat = adoPat;
+  orgUrl = orgUrl;
+
   server.tool(
     WIKI_TOOLS.get_wiki,
     "Get the wiki by wikiIdentifier",
@@ -27,7 +36,7 @@ function configureWikiTools(
       project: z.string().optional().describe("The project name or ID where the wiki is located. If not provided, the default project will be used."),
     },
     async ({ wikiIdentifier, project }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const wikiApi = await connection.getWikiApi();
       const wiki = await wikiApi.getWiki(wikiIdentifier, project);
 
@@ -44,7 +53,7 @@ function configureWikiTools(
       project: z.string().optional().describe("The project name or ID to filter wikis. If not provided, all wikis in the organization will be returned."),
     },
     async ({ project }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const wikiApi = await connection.getWikiApi();
       const wikis = await wikiApi.getAllWikis(project);
 
@@ -71,7 +80,7 @@ function configureWikiTools(
       continuationToken,
       pageViewsForDays,
     }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const wikiApi = await connection.getWikiApi();
 
       const pagesBatchRequest: WikiPagesBatchRequest = {
@@ -101,7 +110,7 @@ function configureWikiTools(
       path: z.string().describe("The path of the wiki page to retrieve content for."),
     },
     async ({ wikiIdentifier, project, path }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const wikiApi = await connection.getWikiApi();
 
       const stream = await wikiApi.getPageText(
