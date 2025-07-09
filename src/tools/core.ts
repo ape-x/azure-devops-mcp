@@ -5,6 +5,7 @@ import { AccessToken } from "@azure/identity";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebApi } from "azure-devops-node-api";
 import { z } from "zod";
+import { getAzureDevOpsClient } from "../index.js";
 
 const CORE_TOOLS = {
   list_project_teams: "core_list_project_teams",
@@ -13,8 +14,6 @@ const CORE_TOOLS = {
 
 function configureCoreTools(
   server: McpServer,
-  tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>
 ) {
   
   server.tool(
@@ -28,7 +27,7 @@ function configureCoreTools(
     },
     async ({ project, mine, top, skip }) => {
       try {
-        const connection = await connectionProvider();
+        const connection = await getAzureDevOpsClient();
         const coreApi = await connection.getCoreApi();
         const teams = await coreApi.getTeams(
           project,
@@ -67,7 +66,7 @@ function configureCoreTools(
     },
     async ({ stateFilter, top, skip, continuationToken }) => {
       try {
-        const connection = await connectionProvider();
+        const connection = await getAzureDevOpsClient();
         const coreApi = await connection.getCoreApi();
         const projects = await coreApi.getProjects(
           stateFilter,

@@ -8,9 +8,6 @@ import { z } from "zod";
 import { WikiPagesBatchRequest } from "azure-devops-node-api/interfaces/WikiInterfaces.js";
 import { getAzureDevOpsClient } from "../index.js";
 
-let adoPat = "";
-let orgUrl = "";
-
 const WIKI_TOOLS = {
   list_wikis: "wiki_list_wikis",
   get_wiki: "wiki_get_wiki",
@@ -20,13 +17,8 @@ const WIKI_TOOLS = {
 
 function configureWikiTools(
   server: McpServer,
-  tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>,
-  adoPat: string,
-  orgUrl: string
 ) {
-  adoPat = adoPat;
-  orgUrl = orgUrl;
+
 
   server.tool(
     WIKI_TOOLS.get_wiki,

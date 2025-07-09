@@ -12,9 +12,6 @@ import { VersionControlRecursionType } from "azure-devops-node-api/interfaces/Gi
 import { GitItem } from "azure-devops-node-api/interfaces/GitInterfaces.js";
 import { getAzureDevOpsClient } from "../index.js";
 
-let adoPat = "";
-let orgUrl = "";
-
 const SEARCH_TOOLS = {
   search_code: "search_code",
   search_wiki: "search_wiki",
@@ -22,14 +19,10 @@ const SEARCH_TOOLS = {
 };
 
 function configureSearchTools(
-  server: McpServer,
-  tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>,
-  adoPat: string,
-  orgUrl: string
-) {
-  adoPat = adoPat;
-  orgUrl = orgUrl;
+  server: McpServer
+)
+{
+
 
   /*
     CODE SEARCH

@@ -1,11 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { AccessToken } from "@azure/identity";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { WebApi } from "azure-devops-node-api";
 import { BuildQueryOrder, DefinitionQueryOrder } from "azure-devops-node-api/interfaces/BuildInterfaces.js";
 import { z } from "zod";
+import { getAzureDevOpsClient } from "../index.js";
 
 const BUILD_TOOLS = {
   get_definitions: "build_get_definitions",
@@ -20,8 +19,6 @@ const BUILD_TOOLS = {
 
 function configureBuildTools(
   server: McpServer,
-  tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>
 ) {
   
   server.tool(
@@ -65,7 +62,7 @@ function configureBuildTools(
       processType,
       yamlFilename,
     }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const buildApi = await connection.getBuildApi();
       const buildDefinitions = await buildApi.getDefinitions(
         project,
@@ -101,7 +98,7 @@ function configureBuildTools(
       definitionId: z.number().describe("ID of the build definition to get revisions for"),
     },
     async ({ project, definitionId }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const buildApi = await connection.getBuildApi();
       const revisions = await buildApi.getDefinitionRevisions(project, definitionId);
 
@@ -160,7 +157,7 @@ function configureBuildTools(
       repositoryId,
       repositoryType,
     }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const buildApi = await connection.getBuildApi();
       const builds = await buildApi.getBuilds(
         project,
@@ -200,7 +197,7 @@ function configureBuildTools(
       buildId: z.number().describe("ID of the build to get the log for"),
     },
     async ({ project, buildId }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const buildApi = await connection.getBuildApi();
       const logs = await buildApi.getBuildLogs(project, buildId);
 
@@ -221,7 +218,7 @@ function configureBuildTools(
       endLine: z.number().optional().describe("Ending line number for the log content, defaults to the end of the log"),
     },
     async ({ project, buildId, logId, startLine, endLine }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const buildApi = await connection.getBuildApi();
       const logLines = await buildApi.getBuildLogLines(
         project,
@@ -248,7 +245,7 @@ function configureBuildTools(
       includeSourceChange: z.boolean().optional().describe("Whether to include source changes in the results, defaults to false"),
     },
     async ({ project, buildId, continuationToken, top, includeSourceChange }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const buildApi = await connection.getBuildApi();
       const changes = await buildApi.getBuildChanges(
         project,
@@ -273,7 +270,7 @@ function configureBuildTools(
       sourceBranch: z.string().optional().describe("Source branch to run the build from. If not provided, the default branch will be used."),
     },
     async ({ project, definitionId, sourceBranch }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const buildApi = await connection.getBuildApi();
       const build = await buildApi.queueBuild({ definition: { id: definitionId }, sourceBranch }, project);
 
@@ -291,7 +288,7 @@ function configureBuildTools(
       buildId: z.number().describe("ID of the build to get the status for"),
     },
     async ({ project, buildId }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const buildApi = await connection.getBuildApi();
       const build = await buildApi.getBuildReport(project, buildId);
 

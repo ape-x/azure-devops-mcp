@@ -43,8 +43,6 @@ function branchesFilterOutIrrelevantProperties(
 
 function configureRepoTools(
   server: McpServer,
-  tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>
 ) {
   
   server.tool(

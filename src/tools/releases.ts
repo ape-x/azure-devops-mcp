@@ -21,8 +21,6 @@ const RELEASE_TOOLS = {
 
 function configureReleaseTools(
   server: McpServer,
-  tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>
 ) {
   
   server.tool(

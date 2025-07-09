@@ -112,10 +112,6 @@ async function main() {
   
   configureAllTools(
     server,
-    getAzureDevOpsToken,
-    getAzureDevOpsClient,
-    adoPat,
-    orgUrl
   );
 
   const transport = new StdioServerTransport();

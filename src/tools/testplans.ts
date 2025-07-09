@@ -17,18 +17,10 @@ const Test_Plan_Tools = {
   list_test_plans: "testplan_list_test_plans"
 };
 
-let adoPat = "";
-let orgUrl = "";
 
 function configureTestPlanTools(
   server: McpServer,
-  tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>,
-  adoPat: string,
-  orgUrl: string
 ) {
-  adoPat = adoPat;
-  orgUrl = orgUrl;
 
   /*
     LIST OF TEST PLANS

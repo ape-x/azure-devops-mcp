@@ -9,9 +9,7 @@ import { QueryExpand } from "azure-devops-node-api/interfaces/WorkItemTrackingIn
 import { z } from "zod";
 import { batchApiVersion, userAgent } from "../utils.js";
 import { getAzureDevOpsClient } from "../index.js";
-
-let adoPat = "";
-let orgUrl = "";
+import { getAzureDevOpsToken } from "../index.js";
 
 const WORKITEM_TOOLS = {
   my_work_items: "wit_my_work_items",
@@ -61,15 +59,8 @@ function getLinkTypeFromName(name: string) {
 
 
 function configureWorkItemTools(
-  server: McpServer,
-  tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>,
-  _adoPat: string,
-  _orgUrl: string
+  server: McpServer
 ) {
-  adoPat = _adoPat;
-  orgUrl = _orgUrl;
-  
   server.tool(
     WORKITEM_TOOLS.list_backlogs,
     "Revieve a list of backlogs for a given project and team.",
@@ -586,7 +577,7 @@ function configureWorkItemTools(
     async ({ updates }) => {
       const connection = await getAzureDevOpsClient();
       const orgUrl = connection.serverUrl;
-      const accessToken = await tokenProvider();
+      const accessToken = await getAzureDevOpsToken();
 
       // Extract unique IDs from the updates array
       const uniqueIds = Array.from(new Set(updates.map((update) => update.id)));
@@ -648,7 +639,7 @@ function configureWorkItemTools(
     async ({ project, updates }) => {
       const connection = await getAzureDevOpsClient();
       const orgUrl = connection.serverUrl;
-      const accessToken = await tokenProvider();
+      const accessToken = await getAzureDevOpsToken();
 
       // Extract unique IDs from the updates array
       const uniqueIds = Array.from(new Set(updates.map((update) => update.id)));
@@ -734,7 +725,7 @@ function configureWorkItemTools(
         ],
       }));
 
-      const accessToken = await tokenProvider();
+      const accessToken = await getAzureDevOpsToken();
 
       const response = await fetch(
         `${connection.serverUrl}/_apis/wit/$batch?api-version=${batchApiVersion}`,

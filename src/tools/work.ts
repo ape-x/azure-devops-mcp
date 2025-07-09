@@ -14,20 +14,10 @@ const WORK_TOOLS = {
   assign_iterations: "work_assign_iterations",
 };
 
-let orgUrl = "";
-let adoPat = "";
-
 
 function configureWorkTools(
   server: McpServer,
-  tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>,
-  _adoPat: string,
-  _orgUrl: string
 ) {  
-
-  adoPat = _adoPat;
-  orgUrl = _orgUrl;
 
   server.tool(
     WORK_TOOLS.list_team_iterations,
