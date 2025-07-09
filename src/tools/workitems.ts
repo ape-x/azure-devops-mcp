@@ -8,6 +8,10 @@ import { WorkItemExpand } from "azure-devops-node-api/interfaces/WorkItemTrackin
 import { QueryExpand } from "azure-devops-node-api/interfaces/WorkItemTrackingInterfaces.js";
 import { z } from "zod";
 import { batchApiVersion, userAgent } from "../utils.js";
+import { getAzureDevOpsClient } from "../index.js";
+
+let adoPat = "";
+let orgUrl = "";
 
 const WORKITEM_TOOLS = {
   my_work_items: "wit_my_work_items",
@@ -55,11 +59,16 @@ function getLinkTypeFromName(name: string) {
   }
 }
 
+
 function configureWorkItemTools(
   server: McpServer,
   tokenProvider: () => Promise<AccessToken>,
-  connectionProvider: () => Promise<WebApi>
+  connectionProvider: () => Promise<WebApi>,
+  _adoPat: string,
+  _orgUrl: string
 ) {
+  adoPat = _adoPat;
+  orgUrl = _orgUrl;
   
   server.tool(
     WORKITEM_TOOLS.list_backlogs,
@@ -69,7 +78,7 @@ function configureWorkItemTools(
       team: z.string().describe("The name or ID of the Azure DevOps team.") 
     },
     async ({ project, team }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workApi = await connection.getWorkApi();
       const teamContext = { project, team };
       const backlogs = await workApi.getBacklogs(teamContext);
@@ -89,7 +98,7 @@ function configureWorkItemTools(
       backlogId: z.string().describe("The ID of the backlog category to retrieve work items from.") 
     },
     async ({ project, team, backlogId }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workApi = await connection.getWorkApi();
       const teamContext = { project, team };
 
@@ -114,7 +123,7 @@ function configureWorkItemTools(
       includeCompleted: z.boolean().default(false).describe("Whether to include completed work items. Defaults to false."),
     },
     async ({ project, type, top, includeCompleted }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workApi = await connection.getWorkApi();
 
       const workItems = await workApi.getPredefinedQueryResults(
@@ -138,7 +147,7 @@ function configureWorkItemTools(
       ids: z.array(z.number()).describe("The IDs of the work items to retrieve.")
     },
     async ({ project, ids }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workItemApi = await connection.getWorkItemTrackingApi();
       const fields = ["System.Id", "System.WorkItemType", "System.Title", "System.State", "System.Parent", "System.Tags"];
       const workitems = await workItemApi.getWorkItemsBatch({ids, fields}, project);
@@ -163,7 +172,7 @@ function configureWorkItemTools(
         .optional().describe("Expand options include 'all', 'fields', 'links', 'none', and 'relations'. Defaults to 'none'."),
     },
     async ({ id, project, fields, asOf, expand }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workItemApi = await connection.getWorkItemTrackingApi();
       const workItem = await workItemApi.getWorkItem(
         id,
@@ -187,7 +196,7 @@ function configureWorkItemTools(
       top: z.number().default(50).describe("Optional number of comments to retrieve. Defaults to all comments.") 
     },
     async ({ project, workItemId, top }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workItemApi = await connection.getWorkItemTrackingApi();
       const comments = await workItemApi.getComments(project, workItemId, top);
 
@@ -206,7 +215,7 @@ function configureWorkItemTools(
       comment: z.string().describe("The text of the comment to add to the work item.") 
     },
     async ({ project, workItemId, comment }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workItemApi = await connection.getWorkItemTrackingApi();
       const commentCreate = { text: comment };
       const commentResponse = await workItemApi.addComment(
@@ -245,7 +254,7 @@ function configureWorkItemTools(
         areaPath,
         iterationPath,
       }) => {
-        const connection = await connectionProvider();
+        const connection = await getAzureDevOpsClient();
         const workItemApi = await connection.getWorkItemTrackingApi();
   
         const document = [
@@ -311,7 +320,7 @@ function configureWorkItemTools(
     },
     async ({ project, repositoryId, pullRequestId, workItemId }) => {
       try {
-        const connection = await connectionProvider();
+        const connection = await getAzureDevOpsClient();
         const workItemTrackingApi = await connection.getWorkItemTrackingApi();
             
         // Create artifact link relation using vstfs format
@@ -382,7 +391,7 @@ function configureWorkItemTools(
       iterationId: z.string().describe("The ID of the iteration to retrieve work items for."),
     },
     async ({ project, team, iterationId }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workApi = await connection.getWorkApi();
 
       //get the work items for the current iteration
@@ -411,7 +420,7 @@ function configureWorkItemTools(
       ).describe("An array of field updates to apply to the work item."),
     },
     async ({ id, updates }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workItemApi = await connection.getWorkItemTrackingApi();
       const updatedWorkItem = await workItemApi.updateWorkItem(
         null,
@@ -435,7 +444,7 @@ function configureWorkItemTools(
       workItemType: z.string().describe("The name of the work item type to retrieve."),
     },
     async ({ project, workItemType }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workItemApi = await connection.getWorkItemTrackingApi();
 
       const workItemTypeInfo = await workItemApi.getWorkItemType(
@@ -461,7 +470,7 @@ function configureWorkItemTools(
     },
     async ({ project, workItemType, fields }) => {
       try {
-        const connection = await connectionProvider();
+        const connection = await getAzureDevOpsClient();
         const workItemApi = await connection.getWorkItemTrackingApi();
 
         const document = Object.entries(fields).map(([key, value]) => ({
@@ -514,7 +523,7 @@ function configureWorkItemTools(
       includeDeleted,
       useIsoDateFormat,
     }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workItemApi = await connection.getWorkItemTrackingApi();
 
       const queryDetails = await workItemApi.getQuery(
@@ -545,7 +554,7 @@ function configureWorkItemTools(
       top: z.number().default(50).describe("The maximum number of results to return. Defaults to 50."),
     },
     async ({ id, project, team, timePrecision, top }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const workItemApi = await connection.getWorkItemTrackingApi();
       const teamContext = { project, team };
       const queryResult = await workItemApi.queryById(
@@ -575,7 +584,7 @@ function configureWorkItemTools(
       ).describe("An array of updates to apply to work items. Each update should include the operation (op), work item ID (id), field path (path), and new value (value)."),
     },
     async ({ updates }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const orgUrl = connection.serverUrl;
       const accessToken = await tokenProvider();
 
@@ -637,7 +646,7 @@ function configureWorkItemTools(
       ).describe(""),
     },
     async ({ project, updates }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
       const orgUrl = connection.serverUrl;
       const accessToken = await tokenProvider();
 
@@ -700,7 +709,7 @@ function configureWorkItemTools(
       state: z.string().default("Removed").describe("The state to set for the duplicate work items. Defaults to 'Removed'."),
     },
     async ({ id, duplicateIds, project, state }) => {
-      const connection = await connectionProvider();
+      const connection = await getAzureDevOpsClient();
 
       const body = duplicateIds.map((duplicateId) => ({
         method: "PATCH",
